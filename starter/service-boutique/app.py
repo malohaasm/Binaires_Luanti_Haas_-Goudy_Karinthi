@@ -113,6 +113,9 @@ def acheter():
     if "objet_id" not in data:
         return jsonify({"erreur": "champ requis : objet_id"}), 400
 
+    if not isinstance(data["objet_id"], int) or isinstance(data["objet_id"], bool):
+        return jsonify({"erreur": "objet_id doit être un entier"}), 400
+
     with db.Session() as s:
         objet = s.get(db.Objet, data["objet_id"])
         if objet is None:
