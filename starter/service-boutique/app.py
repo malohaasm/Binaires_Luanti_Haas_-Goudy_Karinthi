@@ -68,6 +68,31 @@ def creer_objet():
         return jsonify({"id": objet.id, "nom": objet.nom, "prix": objet.prix, "item": objet.item}), 201
 
 
+# --- File de livraisons -------------------------------------------------------
+
+@app.route("/livraisons", methods=["GET"])
+@require_role("admin")
+def lister_livraisons():
+    with db.Session() as s:
+        livraisons = s.query(db.Livraison).filter_by(statut="en_attente").all()
+        return jsonify([
+            {"id": l.id, "type": l.type, "cible": l.cible, "objet": l.objet}
+            for l in livraisons
+        ])
+
+
+@app.route("/livraisons/<int:livraison_id>/fait", methods=["POST"])
+@require_role("admin")
+def acquitter_livraison(livraison_id):
+    with db.Session() as s:
+        livraison = s.get(db.Livraison, livraison_id)
+        if livraison is None:
+            return jsonify({"erreur": "livraison introuvable"}), 404
+        livraison.statut = "livre"
+        s.commit()
+        return jsonify({"message": "livraison acquittée", "id": livraison_id})
+
+
 # --- Achat --------------------------------------------------------------------
 
 @app.route("/acheter", methods=["POST"])
@@ -100,8 +125,7 @@ def acheter():
             return jsonify({"erreur": "erreur inattendue côté économie"}), 503
 
         livraison = db.Livraison(
-            pseudo=pseudo,
-            objet_id=objet.id,
+            cible=pseudo,
             objet=objet.item,
             statut="en_attente",
         )
