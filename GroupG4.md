@@ -73,60 +73,86 @@ class Livraison(Base):
 
 ##  TEST  11h - 12h
 
-### 1. Voir le catalogue d'objets
+### 1. Lister les objets (sans token) → 200
 ```
-curl -X GET http://localhost:8080/boutique/objets
+Invoke-RestMethod -Uri "http://localhost:8000/objets"
 ```
-
-### 2. Ajouter un objet — Sans Token
+### 2. Ajouter sans token → 401
 ```
-curl -X POST http://localhost:8080/boutique/objets \
--H "Content-Type: application/json" \
--d '{"nom": "Arc magique", "prix": 30, "item": "default:bow 1"}'
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/objets" `
+  -ContentType "application/json" `
+-Body '{"nom":"Pioche en fer","prix":10,"item":"default:pick_iron 1"}'
 ```
-
-### 3. Ajouter un objet — Joueur normal
+### 3. Ajouter avec token joueur → 403
 ```
-curl -X POST http://localhost:8080/boutique/objets \
--H "Authorization: Bearer $TOKEN_JOUEUR" \
--H "Content-Type: application/json" \
--d '{"nom": "Arc magique", "prix": 30, "item": "default:bow 1"}'
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/objets" `
+  -Headers $H_JOUEUR -ContentType "application/json" `
+-Body '{"nom":"Pioche en fer","prix":10,"item":"default:pick_iron 1"}'
 ```
-
-### 4. Ajouter un objet — Admin
+### 4. Ajouter avec token admin → 201
 ```
-curl -X POST http://localhost:8080/boutique/objets \
--H "Authorization: Bearer $TOKEN_ADMIN" \
--H "Content-Type: application/json" \
--d '{"nom": "Arc magique", "prix": 30, "item": "default:bow 1"}'
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/objets" `
+  -Headers $H_ADMIN -ContentType "application/json" `
+-Body '{"nom":"Pioche en fer","prix":10,"item":"default:pick_iron 1"}'
 ```
-
-### 5. Acheter un objet (Solde suffisant)
+### 5. Champ manquant → 400
 ```
-curl -X POST http://localhost:8080/boutique/acheter \
--H "Authorization: Bearer $TOKEN_JOUEUR" \
--H "Content-Type: application/json" \
--d '{"objet_id": 1}'
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/objets" `
+  -Headers $H_ADMIN -ContentType "application/json" `
+-Body '{"nom":"Pioche en fer"}'
 ```
-
-### 6. Acheter un objet (Solde insuffisant)
+### 6. Créditer maxime côté éco d'abord
 ```
-curl -X POST http://localhost:8080/boutique/acheter \
--H "Authorization: Bearer $TOKEN_JOUEUR" \
--H "Content-Type: application/json" \
--d '{"objet_id": 5}'
+Invoke-RestMethod -Method POST -Uri "http://localhost:5000/crediter" `
+  -Headers $H_ADMIN -ContentType "application/json" `
+-Body '{"pseudo":"maxime","montant":100}'
 ```
-
-### 7. Acheter un objet (Économie en panne)
-#### (éteindre service-economie avant)
+### 7. Acheter avec solde suffisant → 201
 ```
-curl -X POST http://localhost:8080/boutique/acheter \
--H "Authorization: Bearer $TOKEN_JOUEUR" \
--H "Content-Type: application/json" \
--d '{"objet_id": 1}' 
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/acheter" `
+  -Headers $H_JOUEUR -ContentType "application/json" `
+-Body '{"objet_id":1}'
 ```
-
-
+### 8. Acheter sans pièces (après avoir tout dépensé) → 409
+```
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/acheter" `
+  -Headers $H_JOUEUR -ContentType "application/json" `
+-Body '{"objet_id":1}'
+```
+### 9. Acheter objet inexistant → 404
+```
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/acheter" `
+  -Headers $H_JOUEUR -ContentType "application/json" `
+-Body '{"objet_id":9999}'
+```
+### 10. Acheter sans token → 401
+```
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/acheter" `
+  -ContentType "application/json" `
+-Body '{"objet_id":1}'
+```
+### 11. Acheter quand économie est éteinte → 503
+#### (Arrêter service-economie avant)
+```
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/acheter" `
+  -Headers $H_JOUEUR -ContentType "application/json" `
+-Body '{"objet_id":1}'
+```
+### 12. Lister les livraisons en attente → 200 + liste
+```
+Invoke-RestMethod -Uri "http://localhost:8000/livraisons" `
+-Headers $H_ADMIN
+```
+### 13. Acquitter une livraison → 200
+```
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/livraisons/1/fait" `
+-Headers $H_ADMIN
+```
+### 14. Acquitter livraison inexistante → 404
+```
+Invoke-RestMethod -Method POST -Uri "http://localhost:8000/livraisons/9999/fait" `
+-Headers $H_ADMIN
+```
 ### 8. Consulter les livraisons en attente
 ``` 
 curl -X GET http://localhost:8080/boutique/livraisons
