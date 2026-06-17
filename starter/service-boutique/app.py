@@ -15,7 +15,7 @@ from flask import Flask, request, jsonify
 import db
 from auth import require_jwt, require_role
 
-ECONOMIE_URL = os.environ.get("ECONOMIE_URL", "http://service-economie:5000")
+ECONOMIE_URL = os.environ.get("ECONOMIE_URL", "http://service-economie:5000")  # local : $env:ECONOMIE_URL="http://localhost:5000"
 
 app = Flask(__name__)
 db.init()
@@ -150,4 +150,5 @@ def acheter():
 
 if __name__ == "__main__":
     # 0.0.0.0 : indispensable en conteneur. Port interne uniforme : 5000.
-    app.run(host="0.0.0.0", port=5000)
+    # local : $env:PORT="8000" pour ne pas entrer en conflit avec service-economie.
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

@@ -51,7 +51,7 @@ class Livraison(Base):
     type: Mapped[str] = mapped_column(default="livrer_objet")
     cible: Mapped[str]  # Le pseudo du joueur qui doit recevoir l'objet
     objet: Mapped[str]  # L'itemstring Luanti à livrer
-    statut: Mapped[str] = mapped_column(default="en_attente") # "en_attente" ou "fait"
+    statut: Mapped[str] = mapped_column(default="en_attente") # "en_attente" ou "livre"
 
 def init():
     """Crée les tables si elles n'existent pas. À APPELER au démarrage."""
@@ -70,14 +70,5 @@ def seed():
                 Objet(nom="Bloc de diamants", prix=100, item="default:diamondblock 1")
             ]
             db.add_all(objets_initiaux)
-            
-            # Optionnel : une livraison déjà en attente pour tester
-            livraison_test = Livraison(
-                cible="maxime", 
-                objet="default:pick_steel 1", 
-                statut="en_attente"
-            )
-            db.add(livraison_test)
-            
             db.commit()
             print("Base de données boutique initialisée avec des données logiques.")
