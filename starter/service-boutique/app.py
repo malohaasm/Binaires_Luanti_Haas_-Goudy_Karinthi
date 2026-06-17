@@ -93,6 +93,16 @@ def acquitter_livraison(livraison_id):
         return jsonify({"message": "livraison acquittée", "id": livraison_id})
 
 
+# --- Inventaire joueur --------------------------------------------------------
+
+@app.route("/inventaire/<pseudo>", methods=["GET"])
+@require_jwt
+def inventaire(pseudo):
+    with db.Session() as s:
+        livraisons = s.query(db.Livraison).filter_by(cible=pseudo, statut="livre").all()
+        return jsonify([{"objet": l.objet} for l in livraisons])
+
+
 # --- Achat --------------------------------------------------------------------
 
 @app.route("/acheter", methods=["POST"])
