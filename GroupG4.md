@@ -71,3 +71,67 @@ class Livraison(Base):
 
 ### 10h40 - Partie du Docker-Compose Transmit G1
 
+##  TEST  11h - 12h
+
+### 1. Voir le catalogue d'objets
+```
+curl -X GET http://localhost:8080/boutique/objets
+```
+
+### 2. Ajouter un objet — Sans Token
+```
+curl -X POST http://localhost:8080/boutique/objets \
+-H "Content-Type: application/json" \
+-d '{"nom": "Arc magique", "prix": 30, "item": "default:bow 1"}'
+```
+
+### 3. Ajouter un objet — Joueur normal
+```
+curl -X POST http://localhost:8080/boutique/objets \
+-H "Authorization: Bearer $TOKEN_JOUEUR" \
+-H "Content-Type: application/json" \
+-d '{"nom": "Arc magique", "prix": 30, "item": "default:bow 1"}'
+```
+
+### 4. Ajouter un objet — Admin
+```
+curl -X POST http://localhost:8080/boutique/objets \
+-H "Authorization: Bearer $TOKEN_ADMIN" \
+-H "Content-Type: application/json" \
+-d '{"nom": "Arc magique", "prix": 30, "item": "default:bow 1"}'
+```
+
+### 5. Acheter un objet (Solde suffisant)
+```
+curl -X POST http://localhost:8080/boutique/acheter \
+-H "Authorization: Bearer $TOKEN_JOUEUR" \
+-H "Content-Type: application/json" \
+-d '{"objet_id": 1}'
+```
+
+### 6. Acheter un objet (Solde insuffisant)
+```
+curl -X POST http://localhost:8080/boutique/acheter \
+-H "Authorization: Bearer $TOKEN_JOUEUR" \
+-H "Content-Type: application/json" \
+-d '{"objet_id": 5}'
+```
+
+### 7. Acheter un objet (Économie en panne)
+#### (éteindre service-economie avant)
+```
+curl -X POST http://localhost:8080/boutique/acheter \
+-H "Authorization: Bearer $TOKEN_JOUEUR" \
+-H "Content-Type: application/json" \
+-d '{"objet_id": 1}' 
+```
+
+
+### 8. Consulter les livraisons en attente
+``` 
+curl -X GET http://localhost:8080/boutique/livraisons
+```
+### 9. Acquitter une livraison
+```
+curl -X POST http://localhost:8080/boutique/livraisons/1/fait
+```
